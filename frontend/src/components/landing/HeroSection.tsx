@@ -10,7 +10,7 @@ export default function HeroSection() {
       <div className="relative z-10 max-w-3xl">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary mb-6">
           <Sparkles className="h-3 w-3" />
-          Powered by Claude AI — claude-sonnet-4-20250514
+          Powered by Gemini AI — gemini-2.5-flash
         </div>
 
         <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-foreground leading-tight mb-6">

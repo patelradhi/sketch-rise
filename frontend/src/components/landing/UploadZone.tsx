@@ -30,7 +30,7 @@ export default function UploadZone() {
       const formData = new FormData()
       formData.append('sketch', file)
 
-      const toastId = toast.loading('Analyzing your floor plan with Claude AI…')
+      const toastId = toast.loading('Analyzing your floor plan with Gemini AI…')
 
       try {
         const { data } = await api.post<AnalyzeResponse>('/api/analyze', formData, {
@@ -100,7 +100,7 @@ export default function UploadZone() {
 
           {uploading ? (
             <div className="w-full max-w-xs space-y-2">
-              <p className="text-sm font-medium text-foreground">Processing with Claude AI…</p>
+              <p className="text-sm font-medium text-foreground">Processing with Gemini AI…</p>
               <Progress value={progress} className="h-1.5" />
               <p className="text-xs text-muted-foreground">{progress}%</p>
             </div>

@@ -12,7 +12,7 @@ export default function LoadingSkeleton() {
       </div>
 
       <div className="text-center space-y-1">
-        <p className="text-lg font-semibold">Claude is analyzing your floor plan</p>
+        <p className="text-lg font-semibold">Gemini AI is analyzing your floor plan</p>
         <p className="text-sm text-muted-foreground">
           Detecting rooms, walls, doors, windows & furniture…
         </p>
