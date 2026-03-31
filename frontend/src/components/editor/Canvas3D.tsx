@@ -1,6 +1,6 @@
 import { Suspense, useRef } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
-import { OrbitControls, Environment, Grid, PerspectiveCamera } from '@react-three/drei'
+import { OrbitControls, Grid, PerspectiveCamera, Sky } from '@react-three/drei'
 import { useAppSelector } from '@/store/hooks'
 import { updateProjectThumbnail } from '@/store/slices/projectSlice'
 import { useAppDispatch } from '@/store/hooks'
@@ -39,14 +39,10 @@ function Scene({ projectId }: { projectId: string }) {
       <ThumbnailCapture projectId={projectId} />
 
       {/* Lighting */}
-      <ambientLight intensity={0.6} />
-      <directionalLight
-        castShadow
-        position={[10, 20, 10]}
-        intensity={1.2}
-        shadow-mapSize={[2048, 2048]}
-      />
-      <Environment preset="city" />
+      <color attach="background" args={['#0f172a']} />
+      <ambientLight intensity={0.8} />
+      <directionalLight castShadow position={[10, 20, 10]} intensity={1.5} />
+      <hemisphereLight args={['#dbeafe', '#1e3a5f', 0.4]} />
 
       {/* Ground grid */}
       <Grid
@@ -98,13 +94,13 @@ export default function Canvas3D({ projectId }: Props) {
   const loading = useAppSelector((s) => s.render.loading)
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full" style={{ height: 'calc(100vh - 56px)' }}>
       {loading && <LoadingSkeleton />}
 
       <Canvas
         shadows
         gl={{ preserveDrawingBuffer: true, antialias: true }}
-        className="w-full h-full"
+        style={{ width: '100%', height: '100%' }}
       >
         <PerspectiveCamera makeDefault position={[0, 15, 15]} fov={50} />
         <Suspense fallback={null}>
