@@ -15,6 +15,10 @@ export function useAnalyze() {
   const navigate = useNavigate()
 
   const analyze = useCallback(async (file: File) => {
+    // Wait 300ms for the file chooser dialog to fully close
+    // Chrome blocks window.open (Puter login popup) if file dialog is still active
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
     setLocalStatus('compressing')
     dispatch(setStatus('compressing'))
 
