@@ -14,8 +14,8 @@ export default function ProjectGrid() {
     const load = async () => {
       dispatch(setProjectsLoading(true))
       try {
-        const { data } = await api.get<Project[]>('/api/projects')
-        dispatch(setProjects(data))
+        const { data } = await api.get<{ data: { projects: Project[] } }>('/api/v1/projects')
+        dispatch(setProjects(data.data.projects))
       } finally {
         dispatch(setProjectsLoading(false))
       }

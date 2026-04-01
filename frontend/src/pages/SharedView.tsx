@@ -17,15 +17,15 @@ export default function SharedView() {
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    fetch(`${API}/api/share/${token}`)
+    fetch(`${API}/api/v1/share/${token}`)
       .then((r) => {
         if (!r.ok) throw new Error()
-        return r.json() as Promise<Project>
+        return r.json() as Promise<{ data: { project: Project } }>
       })
-      .then((data) => {
-        setProject(data)
-        dispatch(setCurrent(data))
-        dispatch(setRenderData(data.renderData))
+      .then(({ data }) => {
+        setProject(data.project)
+        dispatch(setCurrent(data.project))
+        dispatch(setRenderData(data.project.renderData))
       })
       .catch(() => setError(true))
   }, [token, dispatch])
@@ -41,7 +41,6 @@ export default function SharedView() {
 
   return (
     <div className="h-screen w-screen bg-background flex flex-col">
-      {/* Minimal top bar */}
       <header className="glass border-b border-border flex items-center h-12 px-4 gap-3 shrink-0">
         <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/20">
           <Box className="h-3 w-3 text-primary" />
@@ -57,7 +56,6 @@ export default function SharedView() {
         )}
         <div className="ml-auto text-xs text-muted-foreground">Read-only shared view</div>
       </header>
-
       <main className="flex-1 relative">
         {!project ? <LoadingSkeleton /> : <Canvas3D projectId={project._id} />}
       </main>
