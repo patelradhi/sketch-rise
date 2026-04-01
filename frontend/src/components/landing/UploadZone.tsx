@@ -8,14 +8,14 @@ import { cn } from '@/lib/utils'
 import { ACCEPTED_IMAGE_TYPES, MAX_UPLOAD_BYTES } from '@/lib/constants'
 
 const STATUS_LABELS: Record<string, string> = {
-  compressing: 'Preparing image…',
+  compressing: 'Connecting to Puter AI — sign in if a popup appears…',
   analyzing:   'Claude AI is reading your floor plan…',
   saving:      'Saving your project…',
   error:       'Something went wrong — try again',
 }
 
 const STATUS_PROGRESS: Record<string, number> = {
-  compressing: 20,
+  compressing: 15,
   analyzing:   60,
   saving:      90,
   success:     100,
