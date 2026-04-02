@@ -35,12 +35,12 @@ export default function Canvas3D({ projectId: _projectId }: Props) {
         </Button>
       </div>
 
-      {/* ── Scrollable image at natural size ── */}
-      <div className="flex-1 overflow-auto">
+      {/* ── Scrollable image — fits screen width, scrolls vertically if tall ── */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <img
           src={renderedImageUrl}
           alt="AI-generated 3D floor plan render"
-          className="block mx-auto"
+          className="block w-full h-auto"
           draggable={false}
         />
       </div>
