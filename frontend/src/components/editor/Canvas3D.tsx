@@ -28,10 +28,10 @@ export default function Canvas3D({ projectId: _projectId }: Props) {
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-zinc-950">
+    <div className="flex flex-col w-full h-full bg-zinc-950">
 
       {/* ── Toolbar ── */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+      <div className="shrink-0 flex items-center justify-end gap-2 px-4 py-2 border-b border-white/10">
         <Button size="icon" variant="secondary" onClick={() => setZoom(z => Math.min(z + 0.25, 3))}>
           <ZoomIn className="h-4 w-4" />
         </Button>
@@ -47,12 +47,12 @@ export default function Canvas3D({ projectId: _projectId }: Props) {
         </Button>
       </div>
 
-      {/* ── Rendered image — scrollable in both directions ── */}
-      <div className="h-full w-full overflow-auto p-6">
+      {/* ── Scroll area — flex-1 so it fills remaining height exactly ── */}
+      <div className="flex-1 overflow-auto p-6">
         <img
           src={renderedImageUrl}
           alt="AI-generated 3D floor plan render"
-          className="mx-auto block rounded-xl shadow-2xl transition-all duration-200 ease-out"
+          className="mx-auto block rounded-xl shadow-2xl"
           style={{ width: `${zoom * 100}%`, maxWidth: 'none' }}
           draggable={false}
         />
