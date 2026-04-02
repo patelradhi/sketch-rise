@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, ImageIcon, Loader2, Sparkles, LogIn, CheckCircle2, Loader } from 'lucide-react'
+import { Upload, ImageIcon, Loader2, Sparkles, LogIn } from 'lucide-react'
 import { useAnalyze } from '@/hooks/useAnalyze'
 import { usePuterAuth } from '@/hooks/usePuterAuth'
 import { useAppSelector } from '@/store/hooks'
@@ -11,7 +11,7 @@ import { ACCEPTED_IMAGE_TYPES, MAX_UPLOAD_BYTES } from '@/lib/constants'
 
 const STATUS_LABELS: Record<string, string> = {
   compressing: 'Preparing image…',
-  analyzing:   'Claude AI is reading your floor plan…',
+  analyzing:   'Generating your 3D render… (~30s)',
   saving:      'Saving your project…',
   error:       'Something went wrong — try again',
 }
@@ -26,9 +26,11 @@ const STATUS_PROGRESS: Record<string, number> = {
 export default function UploadZone() {
   const { analyze, status } = useAnalyze()
   const { state: puterState, signIn } = usePuterAuth()
-  useAppSelector((s) => s.render.status) // keep Redux in sync
+  useAppSelector((s) => s.render.status)
+
   const busy = ['compressing', 'analyzing', 'saving'].includes(status)
   const isSignedIn = puterState === 'signed-in'
+  const isLoading = puterState === 'loading'
 
   const onDrop = useCallback(
     (accepted: File[]) => {
@@ -43,7 +45,7 @@ export default function UploadZone() {
     accept: ACCEPTED_IMAGE_TYPES,
     maxSize: MAX_UPLOAD_BYTES,
     maxFiles: 1,
-    disabled: busy || !isSignedIn,
+    disabled: busy,
   })
 
   const rejection = fileRejections[0]?.errors[0]
@@ -53,70 +55,49 @@ export default function UploadZone() {
   return (
     <div className="w-full max-w-2xl mx-auto px-4 space-y-3">
 
-      {/* ── Step 1: Connect Puter (must do before upload) ── */}
-      <div className={cn(
-        'flex items-center justify-between rounded-xl border px-4 py-3 transition-colors',
-        isSignedIn
-          ? 'border-green-500/30 bg-green-500/5'
-          : 'border-primary/40 bg-primary/5',
-      )}>
-        <div className="flex items-center gap-2 text-sm">
-          {puterState === 'loading' ? (
-            <>
-              <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
-              <span className="text-muted-foreground">Loading Puter AI…</span>
-            </>
-          ) : isSignedIn ? (
-            <>
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <span className="text-green-600 dark:text-green-400 font-medium">Puter AI connected</span>
-            </>
-          ) : (
-            <>
-              <LogIn className="h-4 w-4 text-primary" />
-              <span className="font-medium text-foreground">Step 1 — Connect Puter AI (free)</span>
-            </>
-          )}
-        </div>
-
-        {!isSignedIn && puterState !== 'loading' && (
-          <Button size="sm" onClick={signIn} className="gap-1.5 text-xs">
+      {/* ── One-time Puter connect banner — only shows when not yet connected ── */}
+      {!isSignedIn && !isLoading && (
+        <div className="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+          <div className="flex items-center gap-2 text-sm">
+            <LogIn className="h-4 w-4 text-amber-500" />
+            <span className="text-foreground">
+              <span className="font-medium">One-time setup:</span> Connect your free Puter account to enable AI rendering
+            </span>
+          </div>
+          <Button size="sm" variant="outline" onClick={signIn} className="gap-1.5 shrink-0 border-amber-500/40 text-amber-600 hover:bg-amber-500/10">
             <LogIn className="h-3 w-3" />
             Connect
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* ── Step 2: Upload zone ── */}
+      {/* ── Upload zone — always visible, always accessible ── */}
       <div
         {...getRootProps()}
         className={cn(
-          'relative grid-bg rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-200',
-          isSignedIn && !busy
-            ? 'cursor-pointer hover:border-primary/50 hover:bg-secondary/30'
-            : 'cursor-not-allowed opacity-50',
-          isDragActive && isSignedIn ? 'border-primary bg-primary/5 scale-[1.01]' : 'border-border',
+          'relative grid-bg rounded-2xl border-2 border-dashed p-12 text-center cursor-pointer transition-all duration-200',
+          isDragActive
+            ? 'border-primary bg-primary/5 scale-[1.01]'
+            : 'border-border hover:border-primary/50 hover:bg-secondary/30',
           busy && 'pointer-events-none opacity-80',
         )}
       >
         <input {...getInputProps()} />
 
         <div className="flex flex-col items-center gap-4">
-          {/* Icon */}
           <div className={cn(
             'flex h-16 w-16 items-center justify-center rounded-2xl border transition-colors',
-            isDragActive && isSignedIn ? 'border-primary bg-primary/20' : 'border-border bg-secondary',
+            isDragActive ? 'border-primary bg-primary/20' : 'border-border bg-secondary',
           )}>
             {busy ? (
               <Loader2 className="h-7 w-7 text-primary animate-spin" />
-            ) : isDragActive && isSignedIn ? (
+            ) : isDragActive ? (
               <ImageIcon className="h-7 w-7 text-primary" />
             ) : (
               <Upload className="h-7 w-7 text-muted-foreground" />
             )}
           </div>
 
-          {/* Status text */}
           {busy ? (
             <div className="w-full max-w-xs space-y-2">
               <p className="text-sm font-medium text-foreground">{label}</p>
@@ -126,23 +107,15 @@ export default function UploadZone() {
           ) : (
             <div>
               <p className="text-base font-semibold text-foreground">
-                {!isSignedIn
-                  ? 'Connect Puter AI above to enable upload'
-                  : isDragActive
-                    ? 'Drop your floor plan here'
-                    : 'Step 2 — Upload your floor plan'}
+                {isDragActive ? 'Drop your floor plan here' : 'Upload your floor plan'}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {isSignedIn
-                  ? 'Drag & drop or click — PNG or JPG, max 10 MB'
-                  : 'Sign in with your free Puter account to continue'}
+                Drag & drop or click — PNG or JPG, max 10 MB
               </p>
-              {isSignedIn && (
-                <div className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary/80">
-                  <Sparkles className="h-3 w-3" />
-                  Powered by Claude AI via Puter.js — completely free
-                </div>
-              )}
+              <div className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary/80">
+                <Sparkles className="h-3 w-3" />
+                Powered by Gemini AI via Puter.js — completely free
+              </div>
             </div>
           )}
         </div>

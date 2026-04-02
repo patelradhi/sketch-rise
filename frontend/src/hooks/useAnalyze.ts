@@ -55,7 +55,11 @@ export function useAnalyze() {
       navigate(`/editor/${project._id}`)
 
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      const raw = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      // Give a friendlier message for the Puter auth case
+      const message = raw.includes('connect your Puter')
+        ? 'Please click "Connect" above to link your free Puter account first.'
+        : raw
       dispatch(setError(message))
       setLocalStatus('error')
       toast.error(message, { id: toastId })
