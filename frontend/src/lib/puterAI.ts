@@ -7,21 +7,14 @@ declare global {
       auth: {
         isSignedIn: () => boolean
         signIn: () => Promise<void>
+        signOut: () => Promise<void>
       }
       ai: {
+        // puter.ai.chat(prompt, imageUrl, options) — correct Puter vision API
         chat: (
-          messages: string | Array<{
-            role: string
-            content: Array<{
-              type: string
-              text?: string
-              image_url?: { url: string }
-            }>
-          }>,
-          options?: {
-            model?: string
-            stream?: boolean
-          },
+          prompt: string,
+          imageUrl: string | null,
+          options?: { model?: string; stream?: boolean },
         ) => Promise<string | {
           message?: { content: Array<{ text: string }> }
           toString?: () => string
@@ -91,25 +84,12 @@ export async function analyzeFloorPlanWithPuter(base64Image: string): Promise<Re
 
   console.log('[puterAI] Calling puter.ai.chat with vision...')
 
-  // Use the messages array format with timeout guard
+  // Correct Puter vision API: chat(prompt, imageUrl, options)
   const response = await withTimeout(
     window.puter.ai.chat(
-      [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: { url: imageDataUrl },
-            },
-            {
-              type: 'text',
-              text: FLOOR_PLAN_PROMPT,
-            },
-          ],
-        },
-      ],
-      { model: 'anthropic/claude-sonnet-4-5' },
+      FLOOR_PLAN_PROMPT,
+      imageDataUrl,
+      { model: 'google/gemini-2.5-flash-lite' },
     ),
     PUTER_TIMEOUT_MS,
     'Puter AI chat',
