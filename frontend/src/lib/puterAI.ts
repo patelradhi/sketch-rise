@@ -32,6 +32,7 @@ declare global {
 }
 
 const PUTER_TIMEOUT_MS = 90_000 // 90 seconds
+const PUTER_LOAD_TIMEOUT_MS = 15_000 // wait up to 15s for puter script to load
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
@@ -45,9 +46,28 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   ])
 }
 
+/** Waits for window.puter to be defined (race condition: script may still be loading) */
+function waitForPuter(): Promise<void> {
+  if (window.puter?.auth) return Promise.resolve()
+  return withTimeout(
+    new Promise<void>((resolve) => {
+      const interval = setInterval(() => {
+        if (window.puter?.auth) {
+          clearInterval(interval)
+          resolve()
+        }
+      }, 100)
+    }),
+    PUTER_LOAD_TIMEOUT_MS,
+    'Puter.js load',
+  )
+}
+
 export async function ensurePuterSignedIn(): Promise<void> {
+  await waitForPuter()
+
   if (!window.puter?.auth) {
-    throw new Error('Puter.js not loaded. Please refresh the page.')
+    throw new Error('Puter.js failed to load. Please refresh the page.')
   }
 
   if (!window.puter.auth.isSignedIn()) {
@@ -93,7 +113,7 @@ export async function analyzeFloorPlanWithPuter(base64Image: string): Promise<Re
           ],
         },
       ],
-      { model: 'claude-sonnet-4-5' },
+      { model: 'claude-3-5-sonnet' },
     ),
     PUTER_TIMEOUT_MS,
     'Puter AI chat',
