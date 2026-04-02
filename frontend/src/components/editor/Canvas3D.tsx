@@ -47,17 +47,15 @@ export default function Canvas3D({ projectId: _projectId }: Props) {
         </Button>
       </div>
 
-      {/* ── Rendered image — scrollable when zoomed or image is large ── */}
-      <div className="h-full w-full overflow-auto p-8">
-        <div className="min-h-full flex items-center justify-center">
-          <img
-            src={renderedImageUrl}
-            alt="AI-generated 3D floor plan render"
-            className="rounded-xl shadow-2xl transition-all duration-200 ease-out"
-            style={{ width: `${zoom * 100}%`, maxWidth: 'none' }}
-            draggable={false}
-          />
-        </div>
+      {/* ── Rendered image — scrollable in both directions ── */}
+      <div className="h-full w-full overflow-auto p-6">
+        <img
+          src={renderedImageUrl}
+          alt="AI-generated 3D floor plan render"
+          className="mx-auto block rounded-xl shadow-2xl transition-all duration-200 ease-out"
+          style={{ width: `${zoom * 100}%`, maxWidth: 'none' }}
+          draggable={false}
+        />
       </div>
     </div>
   )
