@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { compressImageToBase64 } from '@/lib/compressImage'
-import { analyzeFloorPlanWithPuter, ensurePuterSignedIn } from '@/lib/puterAI'
+import { analyzeFloorPlanWithPuter } from '@/lib/puterAI'
 import { setRenderData, setStatus, setProjectId, setError } from '@/store/slices/renderSlice'
 import { addProject } from '@/store/slices/projectSlice'
 import api from '@/lib/api'
@@ -19,19 +19,11 @@ export function useAnalyze() {
     setLocalStatus('compressing')
     dispatch(setStatus('compressing'))
 
-    // Wait 500ms for the file chooser dialog to fully close before any popup
-    // Chrome blocks window.open (Puter login popup) if file dialog is still active
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    const toastId = toast.loading('Connecting to Puter AI…')
+    const toastId = toast.loading('Preparing your floor plan…')
 
     try {
-      // Step 0 — Ensure Puter auth BEFORE compression so login popup fires cleanly
-      await ensurePuterSignedIn()
-
       setLocalStatus('compressing')
       dispatch(setStatus('compressing'))
-      toast.loading('Preparing your floor plan…', { id: toastId })
 
       // Step 1 — Compress image in browser (replaces Sharp on backend)
       const { base64 } = await compressImageToBase64(file)

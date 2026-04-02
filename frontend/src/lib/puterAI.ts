@@ -71,16 +71,12 @@ export async function ensurePuterSignedIn(): Promise<void> {
   }
 
   if (!window.puter.auth.isSignedIn()) {
-    console.log('[puterAI] Not signed in — opening Puter login popup...')
-    await withTimeout(
-      window.puter.auth.signIn(),
-      60_000,
-      'Puter sign-in',
-    )
-    console.log('[puterAI] Signed in successfully.')
-  } else {
-    console.log('[puterAI] Already signed in to Puter.')
+    // Cannot call signIn() here — Chrome blocks window.open in file-chooser context.
+    // The UI must show a "Connect Puter" button (direct click) before upload.
+    throw new Error('Please connect your Puter account first using the button above, then upload your floor plan.')
   }
+
+  console.log('[puterAI] Signed in to Puter ✓')
 }
 
 export async function analyzeFloorPlanWithPuter(base64Image: string): Promise<RenderData> {
