@@ -51,9 +51,10 @@ export default function EditorPage() {
   const isLoading = status === 'analyzing' && !renderedImageUrl
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-background flex flex-col">
+    <div className="h-screen w-screen bg-background flex flex-col">
       <EditorTopBar />
-      <main className="flex-1 pt-14 relative">
+      {/* min-h-0 prevents flex child from overflowing; overflow-y-auto is the scroll container */}
+      <main className="flex-1 min-h-0 pt-14 overflow-y-auto bg-zinc-950">
         {isLoading ? <LoadingSkeleton /> : <Canvas3D projectId={id!} />}
       </main>
     </div>

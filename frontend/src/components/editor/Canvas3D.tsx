@@ -25,25 +25,23 @@ export default function Canvas3D({ projectId: _projectId }: Props) {
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-zinc-950">
-
-      {/* ── Minimal toolbar — download only ── */}
-      <div className="shrink-0 flex items-center justify-end px-4 py-2 border-b border-white/10">
+    <div className="p-6">
+      {/* Download button */}
+      <div className="flex justify-end mb-4">
         <Button size="sm" variant="secondary" onClick={handleDownload} className="gap-1.5">
           <Download className="h-3.5 w-3.5" />
           Download
         </Button>
       </div>
 
-      {/* ── Scrollable image — fits screen width, scrolls vertically if tall ── */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        <img
-          src={renderedImageUrl}
-          alt="AI-generated 3D floor plan render"
-          className="block w-full h-auto"
-          draggable={false}
-        />
-      </div>
+      {/* Image — max 900px wide, centered, natural height, page scrolls below */}
+      <img
+        src={renderedImageUrl}
+        alt="AI-generated 3D floor plan render"
+        className="block mx-auto rounded-xl shadow-2xl"
+        style={{ maxWidth: '900px', width: '100%' }}
+        draggable={false}
+      />
     </div>
   )
 }
