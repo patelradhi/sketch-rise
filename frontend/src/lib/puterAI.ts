@@ -1,5 +1,4 @@
 import { FLOOR_PLAN_PROMPT } from './claudePrompt'
-import type { RenderData } from './types'
 
 declare global {
   interface Window {
@@ -10,36 +9,38 @@ declare global {
         signOut: () => Promise<void>
       }
       ai: {
-        // puter.ai.chat(prompt, imageUrl, options) — correct Puter vision API
-        chat: (
+        // Image generation with optional input image
+        txt2img: (
           prompt: string,
-          imageUrl: string | null,
-          options?: { model?: string; stream?: boolean },
-        ) => Promise<string | {
-          message?: { content: Array<{ text: string }> }
-          toString?: () => string
-        }>
+          options?: {
+            provider?: string
+            model?: string
+            input_image?: string
+            input_image_mime_type?: string
+            ratio?: { w: number; h: number }
+          },
+        ) => Promise<HTMLImageElement>
       }
     }
   }
 }
 
-const PUTER_TIMEOUT_MS = 90_000 // 90 seconds
-const PUTER_LOAD_TIMEOUT_MS = 15_000 // wait up to 15s for puter script to load
+const PUTER_TIMEOUT_MS = 120_000 // 2 minutes — image generation takes longer
+const PUTER_LOAD_TIMEOUT_MS = 15_000
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
       setTimeout(
-        () => reject(new Error(`${label} timed out after ${ms / 1000}s. Please allow Puter popups and sign in, then try again.`)),
+        () => reject(new Error(`${label} timed out after ${ms / 1000}s. Please try again.`)),
         ms,
       ),
     ),
   ])
 }
 
-/** Waits for window.puter to be defined (race condition: script may still be loading) */
+/** Polls until window.puter is ready — fixes race condition when script is still loading */
 function waitForPuter(): Promise<void> {
   if (window.puter?.auth) return Promise.resolve()
   return withTimeout(
@@ -58,76 +59,49 @@ function waitForPuter(): Promise<void> {
 
 export async function ensurePuterSignedIn(): Promise<void> {
   await waitForPuter()
-
   if (!window.puter?.auth) {
     throw new Error('Puter.js failed to load. Please refresh the page.')
   }
-
   if (!window.puter.auth.isSignedIn()) {
-    // Cannot call signIn() here — Chrome blocks window.open in file-chooser context.
-    // The UI must show a "Connect Puter" button (direct click) before upload.
+    // signIn() must be called from a direct button click — never from file-chooser flow
     throw new Error('Please connect your Puter account first using the button above, then upload your floor plan.')
   }
-
   console.log('[puterAI] Signed in to Puter ✓')
 }
 
-export async function analyzeFloorPlanWithPuter(base64Image: string): Promise<RenderData> {
-  if (!window.puter?.ai) {
-    throw new Error('Puter.js not loaded. Please refresh the page.')
-  }
-
-  // Ensure the user is authenticated before making the AI call
+/**
+ * Converts a 2D floor plan (base64 JPEG) into a photorealistic 3D render image.
+ * Uses puter.ai.txt2img() with gemini-2.5-flash-image-preview.
+ * Returns the rendered image as a data URL string.
+ */
+export async function generateFloorPlan3D(
+  base64Image: string,
+  mimeType = 'image/jpeg',
+): Promise<string> {
   await ensurePuterSignedIn()
 
-  const imageDataUrl = `data:image/jpeg;base64,${base64Image}`
+  console.log('[puterAI] Calling puter.ai.txt2img with floor plan image...')
 
-  console.log('[puterAI] Calling puter.ai.chat with vision...')
-
-  // Correct Puter vision API: chat(prompt, imageUrl, options)
   const response = await withTimeout(
-    window.puter.ai.chat(
-      FLOOR_PLAN_PROMPT,
-      imageDataUrl,
-      { model: 'google/gemini-2.5-flash-lite' },
-    ),
+    window.puter.ai.txt2img(FLOOR_PLAN_PROMPT, {
+      provider: 'gemini',
+      model: 'gemini-2.5-flash-image-preview',
+      input_image: base64Image,
+      input_image_mime_type: mimeType,
+      ratio: { w: 1024, h: 1024 },
+    }),
     PUTER_TIMEOUT_MS,
-    'Puter AI chat',
+    'Puter AI image generation',
   )
 
-  console.log('[puterAI] Raw response type:', typeof response)
-  console.log('[puterAI] Raw response:', JSON.stringify(response)?.slice(0, 300))
+  console.log('[puterAI] Response received:', response)
 
-  // Handle both string and object responses
-  let rawText = ''
-  if (typeof response === 'string') {
-    rawText = response
-  } else if (response?.message?.content?.[0]?.text) {
-    rawText = response.message.content[0].text
-  } else if (response?.toString) {
-    rawText = response.toString()
+  const imageUrl = (response as HTMLImageElement).src ?? null
+
+  if (!imageUrl) {
+    throw new Error('AI returned no image. Please try a clearer floor plan image.')
   }
 
-  console.log('[puterAI] Extracted text:', rawText.slice(0, 200))
-
-  // Extract JSON block
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) {
-    console.error('[puterAI] No JSON found. Full response:', rawText)
-    throw new Error('AI could not parse this image. Please use a clear floor plan image.')
-  }
-
-  let parsed: RenderData
-  try {
-    parsed = JSON.parse(jsonMatch[0]) as RenderData
-  } catch (e) {
-    console.error('[puterAI] JSON parse failed:', e)
-    throw new Error('AI returned invalid data. Please try again.')
-  }
-
-  if (!parsed.rooms || !Array.isArray(parsed.rooms)) {
-    throw new Error('Please upload a valid architectural floor plan image.')
-  }
-
-  return parsed
+  console.log('[puterAI] Image URL:', imageUrl.slice(0, 80) + '...')
+  return imageUrl
 }

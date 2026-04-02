@@ -3,8 +3,8 @@ import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { compressImageToBase64 } from '@/lib/compressImage'
-import { analyzeFloorPlanWithPuter } from '@/lib/puterAI'
-import { setRenderData, setStatus, setProjectId, setError } from '@/store/slices/renderSlice'
+import { generateFloorPlan3D } from '@/lib/puterAI'
+import { setRenderedImage, setStatus, setProjectId, setError } from '@/store/slices/renderSlice'
 import { addProject } from '@/store/slices/projectSlice'
 import api from '@/lib/api'
 import type { RenderStatus } from '@/store/slices/renderSlice'
@@ -15,35 +15,34 @@ export function useAnalyze() {
   const navigate = useNavigate()
 
   const analyze = useCallback(async (file: File) => {
-    // Immediately mark as busy so the UI locks (prevents double uploads)
+    // Immediately mark busy to lock the UI and prevent double uploads
     setLocalStatus('compressing')
     dispatch(setStatus('compressing'))
 
     const toastId = toast.loading('Preparing your floor plan…')
 
     try {
-      setLocalStatus('compressing')
-      dispatch(setStatus('compressing'))
+      // Step 1 — Compress image in browser
+      const { base64, mimeType } = await compressImageToBase64(file)
 
-      // Step 1 — Compress image in browser (replaces Sharp on backend)
-      const { base64 } = await compressImageToBase64(file)
-      toast.loading('Claude AI is analyzing your floor plan…', { id: toastId })
-
-      // Step 2 — Call Claude FREE via Puter.js (no API key, no cost!)
+      // Step 2 — Generate photorealistic 3D render via Puter AI (txt2img)
       setLocalStatus('analyzing')
       dispatch(setStatus('analyzing'))
-      const renderData = await analyzeFloorPlanWithPuter(base64)
+      toast.loading('Generating your 3D render… (this takes ~30s)', { id: toastId })
 
-      // Step 3 — Update Redux immediately so 3D renders right away
-      dispatch(setRenderData(renderData))
-      toast.loading('Saving your project…', { id: toastId })
+      const renderedImageUrl = await generateFloorPlan3D(base64, mimeType)
 
-      // Step 4 — Save to MongoDB via backend
+      // Step 3 — Update Redux so editor shows the image immediately
+      dispatch(setRenderedImage({ imageUrl: renderedImageUrl, sketchBase64: base64 }))
+
+      // Step 4 — Save to MongoDB
       setLocalStatus('saving')
       dispatch(setStatus('saving'))
+      toast.loading('Saving your project…', { id: toastId })
+
       const { data } = await api.post('/api/v1/projects', {
         title: 'Untitled Project',
-        renderData,
+        renderedImageUrl,
         originalSketchBase64: base64,
       })
 
@@ -51,7 +50,7 @@ export function useAnalyze() {
       dispatch(setProjectId(project._id))
       dispatch(addProject(project))
 
-      toast.success('3D model ready!', { id: toastId })
+      toast.success('3D render ready!', { id: toastId })
       setLocalStatus('success')
       navigate(`/editor/${project._id}`)
 

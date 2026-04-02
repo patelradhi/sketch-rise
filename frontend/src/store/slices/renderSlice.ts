@@ -1,30 +1,30 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { RenderData } from '@/lib/types'
 
 export type RenderStatus = 'idle' | 'compressing' | 'analyzing' | 'saving' | 'success' | 'error'
 
 interface RenderState {
-  data: RenderData | null
+  renderedImageUrl: string | null  // photorealistic image from Puter AI
+  originalSketchBase64: string | null
   status: RenderStatus
   projectId: string | null
   error: string | null
-  uploadProgress: number
 }
 
 const initialState: RenderState = {
-  data: null,
+  renderedImageUrl: null,
+  originalSketchBase64: null,
   status: 'idle',
   projectId: null,
   error: null,
-  uploadProgress: 0,
 }
 
 const renderSlice = createSlice({
   name: 'render',
   initialState,
   reducers: {
-    setRenderData(state, action: PayloadAction<RenderData>) {
-      state.data = action.payload
+    setRenderedImage(state, action: PayloadAction<{ imageUrl: string; sketchBase64: string }>) {
+      state.renderedImageUrl = action.payload.imageUrl
+      state.originalSketchBase64 = action.payload.sketchBase64
       state.status = 'success'
       state.error = null
     },
@@ -39,30 +39,21 @@ const renderSlice = createSlice({
       state.error = action.payload
       state.status = 'error'
     },
-    setUploadProgress(state, action: PayloadAction<number>) {
-      state.uploadProgress = action.payload
-    },
-    // Keep backward compat
-    setLoading(state, action: PayloadAction<boolean>) {
-      state.status = action.payload ? 'analyzing' : state.status
-    },
     clearRender(state) {
-      state.data = null
+      state.renderedImageUrl = null
+      state.originalSketchBase64 = null
       state.status = 'idle'
       state.projectId = null
       state.error = null
-      state.uploadProgress = 0
     },
   },
 })
 
 export const {
-  setRenderData,
+  setRenderedImage,
   setStatus,
   setProjectId,
   setError,
-  setUploadProgress,
-  setLoading,
   clearRender,
 } = renderSlice.actions
 export default renderSlice.reducer
