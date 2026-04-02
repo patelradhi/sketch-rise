@@ -109,7 +109,7 @@ export async function analyzeFloorPlanWithPuter(base64Image: string): Promise<Re
           ],
         },
       ],
-      { model: 'claude-3-5-sonnet' },
+      { model: 'anthropic/claude-sonnet-4-5' },
     ),
     PUTER_TIMEOUT_MS,
     'Puter AI chat',
