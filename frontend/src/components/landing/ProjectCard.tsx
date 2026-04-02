@@ -33,7 +33,7 @@ export default function ProjectCard({ project }: Props) {
     setEditing(false)
     if (title === project.title) return
     try {
-      await api.patch(`/api/projects/${project._id}`, { title })
+      await api.patch(`/api/v1/projects/${project._id}`, { title })
       dispatch(updateProjectTitle({ id: project._id, title }))
       toast.success('Project renamed')
     } catch {
@@ -44,7 +44,7 @@ export default function ProjectCard({ project }: Props) {
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/api/projects/${project._id}`)
+      await api.delete(`/api/v1/projects/${project._id}`)
       dispatch(removeProject(project._id))
       toast.success('Project deleted')
     } catch {
