@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Box } from 'lucide-react'
 import { useAppDispatch } from '@/store/hooks'
-import { setRenderData } from '@/store/slices/renderSlice'
+import { setRenderedImage } from '@/store/slices/renderSlice'
 import { setCurrent } from '@/store/slices/projectSlice'
 import Canvas3D from '@/components/editor/Canvas3D'
 import LoadingSkeleton from '@/components/editor/LoadingSkeleton'
@@ -25,7 +25,12 @@ export default function SharedView() {
       .then(({ data }) => {
         setProject(data.project)
         dispatch(setCurrent(data.project))
-        dispatch(setRenderData(data.project.renderData))
+        if (data.project.renderedImageUrl) {
+          dispatch(setRenderedImage({
+            imageUrl: data.project.renderedImageUrl,
+            sketchBase64: data.project.originalSketchBase64 ?? '',
+          }))
+        }
       })
       .catch(() => setError(true))
   }, [token, dispatch])

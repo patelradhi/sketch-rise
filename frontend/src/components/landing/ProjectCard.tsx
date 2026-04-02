@@ -59,9 +59,9 @@ export default function ProjectCard({ project }: Props) {
         className="relative h-40 bg-secondary overflow-hidden"
         onClick={() => navigate(`/editor/${project._id}`)}
       >
-        {project.thumbnailBase64 ? (
+        {project.renderedImageUrl ? (
           <img
-            src={project.thumbnailBase64}
+            src={project.renderedImageUrl}
             alt={project.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -130,7 +130,7 @@ export default function ProjectCard({ project }: Props) {
         </div>
 
         <p className="mt-1 text-xs text-muted-foreground">
-          {formatDate(project.createdAt)} · {project.renderData.total_area_sqm} m²
+          {formatDate(project.createdAt)}
         </p>
       </CardContent>
     </Card>

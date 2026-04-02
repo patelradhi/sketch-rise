@@ -71,9 +71,8 @@ export interface Project {
   _id: string
   userId: string
   title: string
-  originalSketchUrl?: string
-  renderData: RenderData
-  thumbnailBase64?: string
+  renderedImageUrl?: string
+  originalSketchBase64?: string
   isPublic: boolean
   shareToken?: string
   version: number
@@ -91,7 +90,6 @@ export interface ApiError {
 export interface AnalyzeResponse {
   success: true
   project: Project
-  renderData: RenderData
 }
 
 export interface UserProfile {
