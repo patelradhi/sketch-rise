@@ -3,7 +3,6 @@ import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { compressImageToBase64 } from '@/lib/compressImage'
-import { generateFloorPlan3D } from '@/lib/puterAI'
 import { setRenderedImage, setStatus, setProjectId, setError } from '@/store/slices/renderSlice'
 import { addProject } from '@/store/slices/projectSlice'
 import api from '@/lib/api'
@@ -15,7 +14,6 @@ export function useAnalyze() {
   const navigate = useNavigate()
 
   const analyze = useCallback(async (file: File) => {
-    // Immediately mark busy to lock the UI and prevent double uploads
     setLocalStatus('compressing')
     dispatch(setStatus('compressing'))
 
@@ -25,12 +23,13 @@ export function useAnalyze() {
       // Step 1 — Compress image in browser
       const { base64, mimeType } = await compressImageToBase64(file)
 
-      // Step 2 — Generate photorealistic 3D render via Puter AI (txt2img)
+      // Step 2 — Generate 3D render via backend Gemini API
       setLocalStatus('analyzing')
       dispatch(setStatus('analyzing'))
       toast.loading('Generating your 3D render… (this takes ~30s)', { id: toastId })
 
-      const renderedImageUrl = await generateFloorPlan3D(base64, mimeType)
+      const { data } = await api.post('/api/v1/generate', { base64Image: base64, mimeType })
+      const renderedImageUrl = data.data.imageUrl
 
       // Step 3 — Update Redux so editor shows the image immediately
       dispatch(setRenderedImage({ imageUrl: renderedImageUrl, sketchBase64: base64 }))
@@ -40,13 +39,13 @@ export function useAnalyze() {
       dispatch(setStatus('saving'))
       toast.loading('Saving your project…', { id: toastId })
 
-      const { data } = await api.post('/api/v1/projects', {
+      const { data: saveData } = await api.post('/api/v1/projects', {
         title: 'Untitled Project',
         renderedImageUrl,
         originalSketchBase64: base64,
       })
 
-      const project = data.data.project
+      const project = saveData.data.project
       dispatch(setProjectId(project._id))
       dispatch(addProject(project))
 
@@ -55,11 +54,7 @@ export function useAnalyze() {
       navigate(`/editor/${project._id}`)
 
     } catch (err: unknown) {
-      const raw = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
-      // Give a friendlier message for the Puter auth case
-      const message = raw.includes('connect your Puter')
-        ? 'Please click "Connect" above to link your free Puter account first.'
-        : raw
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
       dispatch(setError(message))
       setLocalStatus('error')
       toast.error(message, { id: toastId })

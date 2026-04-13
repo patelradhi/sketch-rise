@@ -1,16 +1,17 @@
+import { Link } from 'react-router-dom'
 import { Sparkles, PlayCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function HeroSection() {
   return (
-    <section className="relative flex flex-col items-center text-center pt-32 pb-16 px-4">
+    <section className="relative flex flex-col items-center text-center pt-28 pb-8 px-4">
       {/* Ambient glow */}
       <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-3xl">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary mb-6">
           <Sparkles className="h-3 w-3" />
-          Powered by Claude AI via Puter.js — free, no API key
+          Powered by Gemini AI
         </div>
 
         <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-foreground leading-tight mb-6">
@@ -31,10 +32,12 @@ export default function HeroSection() {
             <Sparkles className="h-4 w-4" />
             Start Building
           </Button>
-          <Button size="lg" variant="outline" className="gap-2">
-            <PlayCircle className="h-4 w-4" />
-            Watch Demo
-          </Button>
+          <Link to="/demo">
+            <Button size="lg" variant="outline" className="gap-2">
+              <PlayCircle className="h-4 w-4" />
+              Watch Demo
+            </Button>
+          </Link>
         </div>
 
         {/* Stats */}

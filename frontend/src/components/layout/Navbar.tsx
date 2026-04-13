@@ -1,4 +1,5 @@
 import { UserButton, useUser } from '@clerk/clerk-react'
+import { Link } from 'react-router-dom'
 import { Box } from 'lucide-react'
 
 export default function Navbar() {
@@ -19,10 +20,10 @@ export default function Navbar() {
 
         {/* Nav Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="#" className="hover:text-foreground transition-colors">Product</a>
-          <a href="#" className="hover:text-foreground transition-colors">Pricing</a>
-          <a href="#" className="hover:text-foreground transition-colors">Community</a>
-          <a href="#" className="hover:text-foreground transition-colors">Enterprise</a>
+          <Link to="/product" className="hover:text-foreground transition-colors">Product</Link>
+          <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+          <Link to="/community" className="hover:text-foreground transition-colors">Community</Link>
+          <Link to="/enterprise" className="hover:text-foreground transition-colors">Enterprise</Link>
         </nav>
 
         {/* User */}

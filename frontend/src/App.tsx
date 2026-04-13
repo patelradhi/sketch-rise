@@ -4,6 +4,11 @@ import { Toaster } from 'sonner'
 import LandingPage from '@/pages/LandingPage'
 import EditorPage from '@/pages/EditorPage'
 import SharedView from '@/pages/SharedView'
+import ProductPage from '@/pages/ProductPage'
+import PricingPage from '@/pages/PricingPage'
+import CommunityPage from '@/pages/CommunityPage'
+import EnterprisePage from '@/pages/EnterprisePage'
+import DemoPage from '@/pages/DemoPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return (
@@ -46,6 +51,11 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/product" element={<ProtectedRoute><ProductPage /></ProtectedRoute>} />
+        <Route path="/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
+        <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+        <Route path="/enterprise" element={<ProtectedRoute><EnterprisePage /></ProtectedRoute>} />
+        <Route path="/demo" element={<ProtectedRoute><DemoPage /></ProtectedRoute>} />
         <Route path="/share/:token" element={<SharedView />} />
         <Route
           path="/sign-in/*"
