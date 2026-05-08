@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setProjects, setProjectsLoading } from '@/store/slices/projectSlice';
 import ProjectCard from './ProjectCard';
@@ -7,10 +8,12 @@ import api from '@/lib/api';
 import type { Project } from '@/lib/types';
 
 export default function ProjectGrid() {
+	const { isSignedIn } = useAuth();
 	const dispatch = useAppDispatch();
 	const { list, loading } = useAppSelector((s) => s.project);
 
 	useEffect(() => {
+		if (!isSignedIn) return;
 		const load = async () => {
 			dispatch(setProjectsLoading(true));
 			try {
@@ -21,7 +24,9 @@ export default function ProjectGrid() {
 			}
 		};
 		load();
-	}, [dispatch]);
+	}, [dispatch, isSignedIn]);
+
+	if (!isSignedIn) return null;
 
 	return (
 		<section className="container pt-10 pb-16 pl-10 md:pl-16">

@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Upload, Cpu, Download, ArrowRight, Layers, Zap, Shield } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
+import PageBackground from '@/components/layout/PageBackground'
 import BackButton from '@/components/shared/BackButton'
 import { Button } from '@/components/ui/button'
 
@@ -17,10 +18,17 @@ const features = [
 ]
 
 export default function ProductPage() {
+  const navigate = useNavigate()
+
+  const handleGetStarted = () => {
+    navigate('/', { state: { scrollToUpload: true } })
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background overflow-x-hidden">
+      <PageBackground />
       <Navbar />
-      <main className="pt-16">
+      <main className="relative z-10 pt-16">
         <BackButton />
         {/* Hero */}
         <section className="container py-12 text-center">
@@ -74,9 +82,9 @@ export default function ProductPage() {
             <p className="text-sm text-muted-foreground mb-6">
               Upload your first floor plan and get a photorealistic 3D render in seconds.
             </p>
-            <Link to="/">
-              <Button size="lg" className="gap-2">Get Started <ArrowRight className="h-4 w-4" /></Button>
-            </Link>
+            <Button size="lg" onClick={handleGetStarted} className="gap-2">
+              Get Started <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
         </section>
       </main>

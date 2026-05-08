@@ -2,12 +2,19 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useUser } from '@clerk/clerk-react';
-import { Download, Share2, Loader2 } from 'lucide-react';
+import { Download, Share2, Loader2, MoreHorizontal, Trash2, Pencil } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setCurrent, updateProjectTitle } from '@/store/slices/projectSlice';
+import { setCurrent, updateProjectTitle, removeProject } from '@/store/slices/projectSlice';
 import { setRenderedImage, setStatus } from '@/store/slices/renderSlice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import EditorTopBar from '@/components/editor/EditorTopBar';
 import LoadingSkeleton from '@/components/editor/LoadingSkeleton';
 import ShareModal from '@/components/shared/ShareModal';
@@ -46,7 +53,7 @@ export default function EditorPage() {
 					dispatch(
 						setRenderedImage({
 							imageUrl: proj.renderedImageUrl,
-							sketchBase64: proj.originalSketchBase64 ?? '',
+							sketchUrl: proj.originalSketchUrl ?? '',
 						}),
 					);
 				}
@@ -84,6 +91,21 @@ export default function EditorPage() {
 		}
 	};
 
+	const handleDelete = async () => {
+		if (!project) return;
+		const confirmed = window.confirm(`Delete "${project.title}"? This cannot be undone.`);
+		if (!confirmed) return;
+
+		try {
+			await api.delete(`/api/v1/projects/${project._id}`);
+			dispatch(removeProject(project._id));
+			toast.success('Project deleted');
+			navigate('/');
+		} catch {
+			toast.error('Failed to delete project');
+		}
+	};
+
 	const isLoading = status === 'analyzing' && !renderedImageUrl;
 
 	return (
@@ -111,13 +133,10 @@ export default function EditorPage() {
 										autoFocus
 									/>
 								) : (
-									<button
-										className="text-lg font-bold hover:text-primary transition-colors flex items-center gap-2"
-										onDoubleClick={() => setEditingTitle(true)}
-									>
+									<h1 className="text-lg font-bold flex items-center gap-2">
 										{title || 'Untitled Project'}
 										{saving && <Loader2 className="h-4 w-4 animate-spin" />}
-									</button>
+									</h1>
 								)}
 
 								<p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
@@ -144,6 +163,31 @@ export default function EditorPage() {
 									<Share2 className="h-4 w-4" />
 									SHARE
 								</Button>
+
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button
+											size="icon"
+											variant="ghost"
+											className="h-9 w-9 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+											aria-label="More project actions"
+										>
+											<MoreHorizontal className="h-4 w-4" />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="end">
+										<DropdownMenuItem onClick={() => setEditingTitle(true)}>
+											<Pencil className="h-4 w-4" /> Rename
+										</DropdownMenuItem>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="text-destructive focus:text-destructive"
+											onClick={handleDelete}
+										>
+											<Trash2 className="h-4 w-4" /> Delete
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
 							</div>
 						</div>
 
@@ -170,7 +214,12 @@ export default function EditorPage() {
 			{project && (
 				<>
 					<ShareModal open={shareOpen} onClose={() => setShareOpen(false)} projectId={project._id} />
-					<ExportModal open={exportOpen} onClose={() => setExportOpen(false)} projectTitle={title} imageUrl={renderedImageUrl ?? undefined} />
+					<ExportModal
+						open={exportOpen}
+						onClose={() => setExportOpen(false)}
+						projectTitle={title}
+						imageUrl={renderedImageUrl ?? undefined}
+					/>
 				</>
 			)}
 		</div>

@@ -29,10 +29,10 @@ export function useAnalyze() {
       toast.loading('Generating your 3D render… (this takes ~30s)', { id: toastId })
 
       const { data } = await api.post('/api/v1/generate', { base64Image: base64, mimeType })
-      const renderedImageUrl = data.data.imageUrl
+      const { originalSketchUrl, renderedImageUrl } = data.data
 
       // Step 3 — Update Redux so editor shows the image immediately
-      dispatch(setRenderedImage({ imageUrl: renderedImageUrl, sketchBase64: base64 }))
+      dispatch(setRenderedImage({ imageUrl: renderedImageUrl, sketchUrl: originalSketchUrl }))
 
       // Step 4 — Save to MongoDB
       setLocalStatus('saving')
@@ -42,7 +42,7 @@ export function useAnalyze() {
       const { data: saveData } = await api.post('/api/v1/projects', {
         title: 'Untitled Project',
         renderedImageUrl,
-        originalSketchBase64: base64,
+        originalSketchUrl,
       })
 
       const project = saveData.data.project

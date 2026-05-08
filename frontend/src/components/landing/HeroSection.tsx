@@ -3,58 +3,59 @@ import { Sparkles, PlayCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function HeroSection() {
+  const scrollToUpload = () => {
+    document.getElementById('upload-zone')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
   return (
-    <section className="relative flex flex-col items-center text-center pt-28 pb-8 px-4">
+    <section className="relative flex flex-col items-center text-center pt-24 pb-12 px-4">
       {/* Ambient glow */}
-      <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-3xl">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary mb-6">
-          <Sparkles className="h-3 w-3" />
-          Powered by Gemini AI
-        </div>
-
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-foreground leading-tight mb-6">
+        {/* Heading */}
+        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.05] mb-6 text-foreground">
           Turn your sketch into a{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-500 to-fuchsia-500">
             3D space
           </span>{' '}
           instantly.
         </h1>
 
-        <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-          Upload any hand-drawn or digital floor plan. Claude AI parses the layout and
-          React Three Fiber builds a photorealistic 3D visualization in seconds.
+        {/* Subhead */}
+        <p className="text-base sm:text-lg text-muted-foreground mx-auto mb-9 sm:whitespace-nowrap">
+          Drop in a sketch. We handle parsing, walls, windows, and lighting — all in seconds.
         </p>
 
-        <div className="flex items-center justify-center gap-4">
-          <Button size="lg" className="gap-2 shadow-lg shadow-primary/25">
+        {/* CTAs */}
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Button
+            size="lg"
+            onClick={scrollToUpload}
+            className="gap-2 bg-gradient-to-r from-indigo-500 via-violet-500 to-pink-500 hover:from-indigo-600 hover:via-violet-600 hover:to-pink-600 text-white border-0 shadow-md shadow-pink-500/15"
+          >
+            Try it free
             <Sparkles className="h-4 w-4" />
-            Start Building
           </Button>
           <Link to="/demo">
             <Button size="lg" variant="outline" className="gap-2">
               <PlayCircle className="h-4 w-4" />
-              Watch Demo
+              Watch 60s demo
             </Button>
           </Link>
         </div>
 
         {/* Stats */}
-        <div className="flex items-center justify-center gap-8 mt-12 text-sm text-muted-foreground">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">2s</p>
-            <p>avg processing</p>
+        <div className="flex items-center justify-center gap-6 mt-10 text-xs text-muted-foreground flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span><strong className="text-foreground font-semibold">2s</strong> avg render</span>
           </div>
-          <div className="h-8 w-px bg-border" />
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">PNG/JPG</p>
-            <p>any sketch</p>
+          <div className="flex items-center gap-2">
+            <span><strong className="text-foreground font-semibold">12k+</strong> plans built</span>
           </div>
-          <div className="h-8 w-px bg-border" />
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">3D</p>
-            <p>instant render</p>
+          <div className="flex items-center gap-2">
+            <span><strong className="text-foreground font-semibold">4.9★</strong> rating</span>
           </div>
         </div>
       </div>

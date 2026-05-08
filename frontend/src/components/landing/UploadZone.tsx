@@ -1,121 +1,158 @@
-import { useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { Upload, ImageIcon, Loader2, Sparkles, Layers } from 'lucide-react'
-import { useAnalyze } from '@/hooks/useAnalyze'
-import { useAppSelector } from '@/store/hooks'
-import { Progress } from '@/components/ui/progress'
-import { cn } from '@/lib/utils'
-import { ACCEPTED_IMAGE_TYPES, MAX_UPLOAD_BYTES } from '@/lib/constants'
+import { useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
+import { Upload, ImageIcon, Loader2 } from 'lucide-react';
+import { useAnalyze } from '@/hooks/useAnalyze';
+import { useAppSelector } from '@/store/hooks';
+import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+import { ACCEPTED_IMAGE_TYPES, MAX_UPLOAD_BYTES } from '@/lib/constants';
 
 const STATUS_LABELS: Record<string, string> = {
-  compressing: 'Preparing image…',
-  analyzing:   'Generating your 3D render… (~30s)',
-  saving:      'Saving your project…',
-  error:       'Something went wrong — try again',
-}
+	compressing: 'Preparing image…',
+	analyzing: 'Generating your 3D render… (~30s)',
+	saving: 'Saving your project…',
+	error: 'Something went wrong — try again',
+};
 
 const STATUS_PROGRESS: Record<string, number> = {
-  compressing: 20,
-  analyzing:   60,
-  saving:      90,
-  success:     100,
-}
+	compressing: 20,
+	analyzing: 60,
+	saving: 90,
+	success: 100,
+};
 
 export default function UploadZone() {
-  const { analyze, status } = useAnalyze()
-  useAppSelector((s) => s.render.status)
+	const { isSignedIn } = useAuth();
+	const navigate = useNavigate();
+	const { analyze, status } = useAnalyze();
+	useAppSelector((s) => s.render.status);
 
-  const busy = ['compressing', 'analyzing', 'saving'].includes(status)
+	const busy = ['compressing', 'analyzing', 'saving'].includes(status);
 
-  const onDrop = useCallback(
-    (accepted: File[]) => {
-      const file = accepted[0]
-      if (file) analyze(file)
-    },
-    [analyze],
-  )
+	const onDrop = useCallback(
+		(accepted: File[]) => {
+			if (!isSignedIn) {
+				navigate('/sign-in');
+				return;
+			}
+			const file = accepted[0];
+			if (file) analyze(file);
+		},
+		[analyze, isSignedIn, navigate],
+	);
 
-  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
-    onDrop,
-    accept: ACCEPTED_IMAGE_TYPES,
-    maxSize: MAX_UPLOAD_BYTES,
-    maxFiles: 1,
-    disabled: busy,
-  })
+	const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
+		onDrop,
+		accept: ACCEPTED_IMAGE_TYPES,
+		maxSize: MAX_UPLOAD_BYTES,
+		maxFiles: 1,
+		disabled: busy || !isSignedIn,
+	});
 
-  const rejection = fileRejections[0]?.errors[0]
-  const progress = STATUS_PROGRESS[status] ?? 0
+	const wrapperProps = isSignedIn
+		? getRootProps()
+		: { onClick: () => navigate('/sign-in'), role: 'button', tabIndex: 0 };
 
-  return (
-    <section className="container mt-10 mb-4 flex justify-center">
-      {/* Outer grid-bg wrapper */}
-      <div className="relative grid-bg rounded-3xl border border-border/60 p-10 overflow-hidden w-full max-w-3xl">
-        {/* Ambient glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[350px] h-[140px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+	const rejection = fileRejections[0]?.errors[0];
+	const progress = STATUS_PROGRESS[status] ?? 0;
 
-        {/* Inner card */}
-        <div className="relative rounded-2xl bg-card/80 backdrop-blur-sm border border-border/80 shadow-xl shadow-black/20 p-4 max-w-sm mx-auto">
-          {/* Header */}
-          <div className="flex flex-col items-center text-center mb-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 ring-1 ring-primary/30 mb-2">
-              <Layers className="h-4 w-4 text-primary" />
-            </div>
-            <h3 className="text-sm font-bold text-foreground">Upload your floor plan</h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Supports JPG, PNG — max 10 MB</p>
-          </div>
+	return (
+		<section id="upload-zone" className="container pt-6 pb-10">
+			<div className="max-w-3xl mx-auto">
+				{/* Caption */}
 
-          {/* Inner dashed drop zone */}
-          <div
-            {...getRootProps()}
-            className={cn(
-              'relative rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 py-10 px-3 text-center',
-              isDragActive
-                ? 'border-primary bg-primary/5'
-                : 'border-border/70 hover:border-primary/50 hover:bg-secondary/40',
-              busy && 'pointer-events-none opacity-80',
-            )}
-          >
-            <input {...getInputProps()} />
+				{/* Title */}
+				<h2 className="text-3xl sm:text-4xl font-bold text-foreground text-center mb-2">
+					Upload your floor plan
+				</h2>
+				<p className="text-sm text-muted-foreground text-center mb-8">
+					Drag &amp; drop a file, or click anywhere to browse.
+				</p>
 
-            <div className="flex flex-col items-center gap-2">
-              <div className={cn(
-                'flex h-9 w-9 items-center justify-center rounded-full border transition-colors',
-                isDragActive ? 'border-primary bg-primary/20' : 'border-border bg-secondary',
-              )}>
-                {busy ? (
-                  <Loader2 className="h-4 w-4 text-primary animate-spin" />
-                ) : isDragActive ? (
-                  <ImageIcon className="h-4 w-4 text-primary" />
-                ) : (
-                  <Upload className="h-4 w-4 text-muted-foreground" />
-                )}
-              </div>
+				{/* Drop zone */}
+				<div
+					{...wrapperProps}
+					id="dropzone-target"
+					className={cn(
+						'relative rounded-3xl border-2 border-dashed cursor-pointer transition-all duration-200 px-6 py-16 sm:py-20 text-center',
+						isDragActive
+							? 'border-primary bg-primary/5'
+							: 'border-border hover:border-primary/50 hover:bg-secondary/40',
+						busy && 'pointer-events-none opacity-80',
+					)}
+				>
+					{isSignedIn && <input {...getInputProps()} />}
 
-              {busy ? (
-                <div className="w-full max-w-xs space-y-1.5 mt-1">
-                  <p className="text-xs font-medium text-foreground">{STATUS_LABELS[status] ?? 'Uploading…'}</p>
-                  <Progress value={progress} className="h-1" />
-                  <p className="text-[10px] text-muted-foreground">{progress}%</p>
-                </div>
-              ) : (
-                <>
-                  <p className="text-xs font-semibold text-foreground">
-                    {isDragActive ? 'Drop your floor plan here' : 'Click to upload or drag and drop'}
-                  </p>
-                  <div className="inline-flex items-center gap-1 text-[10px] text-primary/80">
-                    <Sparkles className="h-2.5 w-2.5" />
-                    Powered by Gemini AI
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+					{/* Corner dots */}
+					<span className="absolute top-3 left-3 h-1.5 w-1.5 rounded-full bg-rose-500/70" />
+					<span className="absolute top-3 right-3 h-1.5 w-1.5 rounded-full bg-indigo-500/70" />
+					<span className="absolute bottom-3 left-3 h-1.5 w-1.5 rounded-full bg-violet-500/70" />
+					<span className="absolute bottom-3 right-3 h-1.5 w-1.5 rounded-full bg-rose-500/70" />
 
-          {rejection && (
-            <p className="text-center text-xs text-destructive mt-3">{rejection.message}</p>
-          )}
-        </div>
-      </div>
-    </section>
-  )
+					<div className="flex flex-col items-center gap-4">
+						{/* Center icon */}
+						<div
+							className={cn(
+								'flex h-16 w-16 items-center justify-center rounded-2xl border-2 transition-colors',
+								'bg-gradient-to-br from-primary/30 to-violet-500/20 border-primary/30 shadow-lg shadow-primary/20',
+							)}
+						>
+							{busy ? (
+								<Loader2 className="h-7 w-7 text-primary animate-spin" />
+							) : isDragActive ? (
+								<ImageIcon className="h-7 w-7 text-primary" />
+							) : (
+								<Upload className="h-7 w-7 text-primary" />
+							)}
+						</div>
+
+						{busy ? (
+							<div className="w-full max-w-xs space-y-2">
+								<p className="text-sm font-medium text-foreground">
+									{STATUS_LABELS[status] ?? 'Uploading…'}
+								</p>
+								<Progress value={progress} className="h-1.5" />
+								<p className="text-[10px] text-muted-foreground">{progress}%</p>
+							</div>
+						) : (
+							<>
+								<p className="text-base font-semibold text-foreground">
+									{!isSignedIn
+										? 'Sign in to upload your floor plan'
+										: isDragActive
+											? 'Drop your floor plan here'
+											: 'Drop your floor plan here'}
+								</p>
+								{isSignedIn && (
+									<p className="text-xs text-muted-foreground">
+										or{' '}
+										<span className="text-primary font-medium underline-offset-2 hover:underline">
+											click to browse
+										</span>{' '}
+										from your computer
+									</p>
+								)}
+
+								{/* File-type pills */}
+								<div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
+									<span className="px-2 py-0.5 rounded-md border border-border bg-card text-[10px] font-medium text-muted-foreground">
+										JPG
+									</span>
+									<span className="px-2 py-0.5 rounded-md border border-border bg-card text-[10px] font-medium text-muted-foreground">
+										PNG
+									</span>
+									<span className="text-[10px] text-muted-foreground">·</span>
+									<span className="text-[10px] text-muted-foreground">max 10 MB</span>
+								</div>
+							</>
+						)}
+					</div>
+				</div>
+
+				{rejection && <p className="text-center text-xs text-destructive mt-4">{rejection.message}</p>}
+			</div>
+		</section>
+	);
 }

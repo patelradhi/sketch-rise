@@ -1,4 +1,4 @@
-// ─── Render Data (from Claude) ────────────────────────────────────────────────
+// ─── Render Data ──────────────────────────────────────────────────────────────
 
 export interface Vector3 {
   x: number
@@ -72,7 +72,7 @@ export interface Project {
   userId: string
   title: string
   renderedImageUrl?: string
-  originalSketchBase64?: string
+  originalSketchUrl?: string
   isPublic: boolean
   shareToken?: string
   version: number

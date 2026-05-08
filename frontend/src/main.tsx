@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { ClerkProvider } from '@clerk/clerk-react'
 import { Provider } from 'react-redux'
 import { store } from './store'
+import { ThemeProvider } from './contexts/ThemeContext'
 import App from './App'
 import './index.css'
 
@@ -14,10 +15,12 @@ if (!PUBLISHABLE_KEY) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <Provider store={store}>
-        <App />
-      </Provider>
-    </ClerkProvider>
+    <ThemeProvider>
+      <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+        <Provider store={store}>
+          <App />
+        </Provider>
+      </ClerkProvider>
+    </ThemeProvider>
   </React.StrictMode>,
 )

@@ -9,6 +9,41 @@ import PricingPage from '@/pages/PricingPage'
 import CommunityPage from '@/pages/CommunityPage'
 import EnterprisePage from '@/pages/EnterprisePage'
 import DemoPage from '@/pages/DemoPage'
+import AuthLayout from '@/components/auth/AuthLayout'
+
+const clerkAppearance = {
+  elements: {
+    rootBox: 'w-full max-w-md',
+    card: 'bg-card border border-border shadow-2xl rounded-2xl',
+    headerTitle: 'text-foreground',
+    headerSubtitle: 'text-muted-foreground',
+    socialButtonsBlockButton:
+      'bg-background border border-border hover:bg-secondary text-foreground transition-colors',
+    socialButtonsBlockButtonText: 'text-foreground font-medium',
+    dividerLine: 'bg-border',
+    dividerText: 'text-muted-foreground',
+    formFieldLabel: 'text-foreground',
+    formFieldInput: 'bg-background border-border text-foreground',
+    formButtonPrimary:
+      'bg-gradient-to-r from-indigo-500 via-violet-500 to-pink-500 hover:opacity-90 text-white normal-case font-semibold shadow-md shadow-pink-500/20',
+    footer: 'bg-card border-t border-border rounded-b-2xl',
+    footerAction: 'bg-card',
+    footerActionText: 'text-muted-foreground',
+    footerActionLink: 'text-primary hover:text-primary/80 font-medium',
+    footerPagesLink: 'text-muted-foreground hover:text-foreground',
+    identityPreviewEditButton: 'text-primary',
+    formFieldInputShowPasswordButton: 'text-muted-foreground',
+  },
+  variables: {
+    colorPrimary: '#8b5cf6',
+    colorBackground: 'hsl(var(--card))',
+    colorText: 'hsl(var(--foreground))',
+    colorTextSecondary: 'hsl(var(--muted-foreground))',
+    colorInputBackground: 'hsl(var(--background))',
+    colorInputText: 'hsl(var(--foreground))',
+    borderRadius: '0.75rem',
+  },
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return (
@@ -35,14 +70,7 @@ export default function App() {
         }}
       />
       <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <LandingPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/" element={<LandingPage />} />
         <Route
           path="/editor/:id"
           element={
@@ -51,17 +79,24 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/product" element={<ProtectedRoute><ProductPage /></ProtectedRoute>} />
-        <Route path="/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
-        <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
-        <Route path="/enterprise" element={<ProtectedRoute><EnterprisePage /></ProtectedRoute>} />
-        <Route path="/demo" element={<ProtectedRoute><DemoPage /></ProtectedRoute>} />
+        <Route path="/product" element={<ProductPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/enterprise" element={<EnterprisePage />} />
+        <Route path="/demo" element={<DemoPage />} />
         <Route path="/share/:token" element={<SharedView />} />
         <Route
           path="/sign-in/*"
           element={
             <SignedOut>
-              <SignIn routing="path" path="/sign-in" afterSignInUrl="/" />
+              <AuthLayout>
+                <SignIn
+                  routing="path"
+                  path="/sign-in"
+                  afterSignInUrl="/"
+                  appearance={clerkAppearance}
+                />
+              </AuthLayout>
             </SignedOut>
           }
         />
@@ -69,7 +104,17 @@ export default function App() {
           path="/sign-up/*"
           element={
             <SignedOut>
-              <SignUp routing="path" path="/sign-up" afterSignUpUrl="/" />
+              <AuthLayout
+                title="Start turning sketches into 3D."
+                subtitle="Create your free account and generate your first photorealistic 3D render in under a minute."
+              >
+                <SignUp
+                  routing="path"
+                  path="/sign-up"
+                  afterSignUpUrl="/"
+                  appearance={clerkAppearance}
+                />
+              </AuthLayout>
             </SignedOut>
           }
         />

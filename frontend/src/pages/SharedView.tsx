@@ -28,7 +28,7 @@ export default function SharedView() {
         if (data.project.renderedImageUrl) {
           dispatch(setRenderedImage({
             imageUrl: data.project.renderedImageUrl,
-            sketchBase64: data.project.originalSketchBase64 ?? '',
+            sketchUrl: data.project.originalSketchUrl ?? '',
           }))
         }
       })

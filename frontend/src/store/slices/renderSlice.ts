@@ -3,8 +3,8 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 export type RenderStatus = 'idle' | 'compressing' | 'analyzing' | 'saving' | 'success' | 'error'
 
 interface RenderState {
-  renderedImageUrl: string | null  // photorealistic image from Puter AI
-  originalSketchBase64: string | null
+  renderedImageUrl: string | null  // 3D render Cloudinary URL
+  originalSketchUrl: string | null // 2D sketch Cloudinary URL
   status: RenderStatus
   projectId: string | null
   error: string | null
@@ -12,7 +12,7 @@ interface RenderState {
 
 const initialState: RenderState = {
   renderedImageUrl: null,
-  originalSketchBase64: null,
+  originalSketchUrl: null,
   status: 'idle',
   projectId: null,
   error: null,
@@ -22,9 +22,9 @@ const renderSlice = createSlice({
   name: 'render',
   initialState,
   reducers: {
-    setRenderedImage(state, action: PayloadAction<{ imageUrl: string; sketchBase64: string }>) {
+    setRenderedImage(state, action: PayloadAction<{ imageUrl: string; sketchUrl: string }>) {
       state.renderedImageUrl = action.payload.imageUrl
-      state.originalSketchBase64 = action.payload.sketchBase64
+      state.originalSketchUrl = action.payload.sketchUrl
       state.status = 'success'
       state.error = null
     },
@@ -41,7 +41,7 @@ const renderSlice = createSlice({
     },
     clearRender(state) {
       state.renderedImageUrl = null
-      state.originalSketchBase64 = null
+      state.originalSketchUrl = null
       state.status = 'idle'
       state.projectId = null
       state.error = null
