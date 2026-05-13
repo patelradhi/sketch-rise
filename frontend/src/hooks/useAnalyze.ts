@@ -2,9 +2,11 @@ import { useState, useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import axios from 'axios'
 import { compressImageToBase64 } from '@/lib/compressImage'
 import { setRenderedImage, setStatus, setProjectId, setError } from '@/store/slices/renderSlice'
 import { addProject } from '@/store/slices/projectSlice'
+import { incrementGenerations } from '@/store/slices/userSlice'
 import api from '@/lib/api'
 import type { RenderStatus } from '@/store/slices/renderSlice'
 
@@ -48,12 +50,24 @@ export function useAnalyze() {
       const project = saveData.data.project
       dispatch(setProjectId(project._id))
       dispatch(addProject(project))
+      dispatch(incrementGenerations())
 
       toast.success('3D render ready!', { id: toastId })
       setLocalStatus('success')
       navigate(`/editor/${project._id}`)
 
     } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.code === 'LIMIT_REACHED') {
+        const message = err.response.data.error ?? "You've reached your free generation limit."
+        dispatch(setError(message))
+        setLocalStatus('error')
+        toast.error(message, {
+          id: toastId,
+          duration: 8000,
+          action: { label: 'Upgrade', onClick: () => navigate('/pricing') },
+        })
+        return
+      }
       const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
       dispatch(setError(message))
       setLocalStatus('error')
