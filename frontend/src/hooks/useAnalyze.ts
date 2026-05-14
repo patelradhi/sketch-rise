@@ -57,8 +57,12 @@ export function useAnalyze() {
       navigate(`/editor/${project._id}`)
 
     } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.data?.code === 'LIMIT_REACHED') {
-        const message = err.response.data.error ?? "You've reached your free generation limit."
+      const apiError = axios.isAxiosError(err) ? err.response?.data?.error : undefined
+      const code: string | undefined = apiError?.code
+      const apiMessage: string | undefined = apiError?.message
+
+      if (code === 'LIMIT_REACHED') {
+        const message = apiMessage ?? "You've reached your free generation limit."
         dispatch(setError(message))
         setLocalStatus('error')
         toast.error(message, {
@@ -68,10 +72,19 @@ export function useAnalyze() {
         })
         return
       }
-      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
-      dispatch(setError(message))
+
+      if (code === 'AI_RATE_LIMITED') {
+        const message = apiMessage ?? 'Our AI service is busy. Please try again shortly.'
+        dispatch(setError(message))
+        setLocalStatus('error')
+        toast.error(message, { id: toastId, duration: 6000 })
+        return
+      }
+
+      const fallback = apiMessage ?? (err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      dispatch(setError(fallback))
       setLocalStatus('error')
-      toast.error(message, { id: toastId })
+      toast.error(fallback, { id: toastId })
     }
   }, [dispatch, navigate])
 

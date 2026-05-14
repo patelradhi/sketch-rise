@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useUser } from '@clerk/clerk-react';
-import { Download, Share2, Loader2, MoreHorizontal, Trash2, Pencil } from 'lucide-react';
+import { Download, Share2, Loader2, MoreHorizontal, Trash2, Pencil, ChevronsLeftRight } from 'lucide-react';
+import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setCurrent, updateProjectTitle, removeProject } from '@/store/slices/projectSlice';
 import { setRenderedImage, setStatus } from '@/store/slices/renderSlice';
@@ -28,6 +29,7 @@ export default function EditorPage() {
 	const { user } = useUser();
 	const project = useAppSelector((s) => s.project.current);
 	const renderedImageUrl = useAppSelector((s) => s.render.renderedImageUrl);
+	const originalSketchUrl = useAppSelector((s) => s.render.originalSketchUrl);
 	const status = useAppSelector((s) => s.render.status);
 
 	const [editingTitle, setEditingTitle] = useState(false);
@@ -192,14 +194,14 @@ export default function EditorPage() {
 						</div>
 
 						{/* Render area */}
-						<div className="bg-secondary/30 min-h-[400px] flex items-center justify-center p-6">
+						<div className="bg-secondary/30 min-h-[400px] flex items-center justify-center p-6 sm:p-10">
 							{isLoading ? (
 								<LoadingSkeleton />
 							) : renderedImageUrl ? (
 								<img
 									src={renderedImageUrl}
 									alt="AI-generated 3D floor plan render"
-									className="block mx-auto rounded-lg"
+									className="block mx-auto rounded-xl border border-border shadow-2xl shadow-black/40"
 									style={{ maxWidth: '900px', width: '100%' }}
 									draggable={false}
 								/>
@@ -208,6 +210,57 @@ export default function EditorPage() {
 							)}
 						</div>
 					</div>
+
+					{/* Before / After comparison */}
+					{!isLoading && originalSketchUrl && renderedImageUrl && (
+						<div className="mt-6 rounded-xl border border-border bg-card overflow-hidden">
+							<div className="flex items-start justify-between gap-4 p-3 border-b border-border">
+								<div className="min-w-0">
+									<p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-0">
+										Comparison
+									</p>
+									<h2 className="text-lg font-bold">Before and After</h2>
+								</div>
+								<div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground shrink-0">
+									<ChevronsLeftRight className="h-3.5 w-3.5" />
+									Drag to compare
+								</div>
+							</div>
+							<div className="bg-secondary/30 p-6 sm:p-10">
+								<div
+									className="mx-auto border border-border shadow-2xl shadow-black/40"
+									style={{
+										maxWidth: '900px',
+										borderRadius: '1rem',
+										clipPath: 'inset(0 round 1rem)',
+									}}
+								>
+									<ReactCompareSlider
+										itemOne={
+											<ReactCompareSliderImage
+												src={originalSketchUrl}
+												alt="Original 2D floor plan"
+											/>
+										}
+										itemTwo={
+											<ReactCompareSliderImage
+												src={renderedImageUrl}
+												alt="AI-generated 3D render"
+											/>
+										}
+										onlyHandleDraggable={false}
+										handle={
+											<div className="h-full w-px bg-foreground/40 relative">
+												<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background border border-border shadow-md flex items-center justify-center cursor-ew-resize">
+													<ChevronsLeftRight className="h-4 w-4 text-foreground" />
+												</div>
+											</div>
+										}
+									/>
+								</div>
+							</div>
+						</div>
+					)}
 				</div>
 			</main>
 
